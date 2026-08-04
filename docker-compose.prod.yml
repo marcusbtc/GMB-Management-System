@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    image: ${APP_IMAGE_REPO:-gmb-management-system}:${APP_IMAGE_TAG:-local}
+    restart: unless-stopped
+    expose:
+      - "8501"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/app/.streamlit
+    environment:
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET is required}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:?GOOGLE_REDIRECT_URI is required}
+      GOOGLE_AUTH_URI: ${GOOGLE_AUTH_URI:-https://accounts.google.com/o/oauth2/auth}
+      GOOGLE_TOKEN_URI: ${GOOGLE_TOKEN_URI:-https://oauth2.googleapis.com/token}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
