@@ -16,8 +16,8 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install deps
@@ -43,7 +43,7 @@ jobs:
       GOOGLE_CLIENT_SECRET: ci-placeholder
       GOOGLE_REDIRECT_URI: https://example.invalid/oauth/callback
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: sh scripts/check-deploy-readiness.sh
       - run: docker compose -f docker-compose.prod.yml config --quiet
       - run: docker build -t gmb-management-system:${{ github.sha }} .
