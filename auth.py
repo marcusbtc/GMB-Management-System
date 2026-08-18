@@ -5,16 +5,13 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import Flow
 
 from src.gmb_app.core import config
+from src.gmb_app.core.config import GOOGLE_OAUTH_SCOPES
 from src.gmb_app.core.logging import get_logger
 
 logger = get_logger("auth")
 
 # Scopes required for Google Business Profile and Drive
-SCOPES = [
-    "https://www.googleapis.com/auth/business.manage",
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive.metadata.readonly",
-]
+SCOPES = GOOGLE_OAUTH_SCOPES
 
 
 def _has_required_scopes(creds):

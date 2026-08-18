@@ -27,9 +27,9 @@ jobs:
           pip install -r requirements-dev.txt
           pip install pip-audit
       - name: Compile check
-        run: python -m py_compile app.py auth.py data_fetcher.py drive_helper.py
+        run: python -m py_compile app.py auth.py data_fetcher.py drive_helper.py mcp_server.py
       - name: Lint
-        run: ruff check src tests app.py auth.py
+        run: ruff check src tests app.py auth.py mcp_server.py
       - name: Tests
         run: pytest
       - name: Audit Python dependencies

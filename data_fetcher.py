@@ -491,6 +491,35 @@ def get_reviews(_credentials, location_id, account_name=None):
         logger.debug(traceback.format_exc())
         return []
 
+
+def reply_to_review(_credentials, review_name, comment, location_id=None, account_name=None):
+    """Posts a reply to a GBP review via mybusiness v4 updateReply."""
+    if not _credentials:
+        raise ValueError("No credentials provided.")
+    comment_clean = (comment or "").strip()
+    if not comment_clean:
+        raise ValueError("Reply comment is required.")
+
+    name = (review_name or "").strip()
+    if not name:
+        raise ValueError("review_name is required.")
+
+    if not name.startswith("accounts/"):
+        if not location_id:
+            raise ValueError(
+                "review_name must be accounts/{accountId}/locations/{locationId}/reviews/{reviewId} "
+                "or provide location_id so the parent path can be resolved."
+            )
+        parent = resolve_location_parent(_credentials, location_id, account_name)
+        review_id = name.replace("reviews/", "")
+        name = f"{parent}/reviews/{review_id}"
+
+    service = get_mybusiness_service(_credentials)
+    return service.accounts().locations().reviews().updateReply(
+        name=name,
+        body={"comment": comment_clean},
+    ).execute()
+
 def get_posts(_credentials, location_id, account_name=None):
     """Fetches local posts for the specified location.
 
@@ -670,11 +699,11 @@ def upload_media_from_file(
 
     return media_item
 
-def get_media(_credentials, location_id):
+def get_media(_credentials, location_id, account_name=None):
     """Fetches media items for the specified location."""
     try:
         service_media = get_mybusiness_service(_credentials)
-        parent = resolve_location_parent(_credentials, location_id)
+        parent = resolve_location_parent(_credentials, location_id, account_name)
         media_result = service_media.accounts().locations().media().list(
             parent=parent,
             pageSize=50
@@ -683,6 +712,44 @@ def get_media(_credentials, location_id):
     except Exception as e:
         # logger.warning(f"Could not fetch media: {e}")
         return []
+
+def get_location_details(_credentials, location_id, account_name=None):
+    """Fetches a single location via mybusinessbusinessinformation v1."""
+    if not _credentials:
+        raise ValueError("No credentials provided.")
+
+    read_mask = (
+        "name,title,storefrontAddress,phoneNumbers,websiteUri,regularHours,"
+        "categories,specialHours,serviceArea,openInfo,profile"
+    )
+    service = build("mybusinessbusinessinformation", "v1", credentials=_credentials)
+
+    names_to_try = []
+    try:
+        names_to_try.append(resolve_location_parent(_credentials, location_id, account_name))
+    except ValueError:
+        pass
+    location_only = extract_location_path(location_id)
+    if location_only not in names_to_try:
+        names_to_try.append(location_only)
+
+    last_error = None
+    for name in names_to_try:
+        try:
+            return service.accounts().locations().get(name=name, readMask=read_mask).execute()
+        except Exception as exc:
+            last_error = exc
+
+    location_suffix = extract_location_path(location_id)
+    for loc in get_locations(_credentials, account_name):
+        loc_name = loc.get("name", "")
+        if loc_name == location_id or loc_name.endswith(location_suffix):
+            return loc
+
+    if last_error:
+        raise last_error
+    raise ValueError(f"Location not found: {location_id}")
+
 
 # Note: Q&A API might require 'mybusinessquestions' service
 def get_questions(_credentials, location_id):

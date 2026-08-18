@@ -5,3 +5,4 @@ pandas
 plotly
 fpdf
 google-generativeai
+mcp>=1.9.0,<3

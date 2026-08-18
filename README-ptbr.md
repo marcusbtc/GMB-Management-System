@@ -208,6 +208,41 @@ streamlit run app.py
 Abra em:
 - `http://localhost:8501`
 
+## Servidor MCP (Google Business Profile)
+
+Há um servidor MCP fino que reutiliza `data_fetcher.py` e `drive_helper.py` e devolve só JSON (sem Streamlit, DataFrame, PDF ou Plotly).
+
+```bash
+python mcp_server.py
+python mcp_server.py --http --port 8765
+python mcp_server.py --oauth
+```
+
+Autenticação (não commitar): `access_token` na tool, `GOOGLE_ACCESS_TOKEN`, arquivo gitignored `.gmb-mcp-token.json`, ou as tools `start_oauth` / `complete_oauth`.
+
+Exemplo Cursor (stdio):
+
+```json
+{
+  "mcpServers": {
+    "google-business-profile": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "cwd": "/caminho/absoluto/deste/repo",
+      "env": {
+        "GOOGLE_ACCESS_TOKEN": "<seu-token-oauth>"
+      }
+    }
+  }
+}
+```
+
+Tools de leitura: `list_accounts`, `list_locations`, `get_daily_metrics`, `get_search_keywords`, `list_reviews`, `list_posts`, `list_media`, `list_questions`, `profile_health_check`.
+
+Tools de escrita: `create_local_post`, `upload_image_to_drive`, `reply_to_review`.
+
+Detalhes em [README.md](README.md#mcp-server-google-business-profile).
+
 ## Desenvolvimento
 
 Instale ferramentas de desenvolvimento:
@@ -219,9 +254,9 @@ pip install -r requirements-dev.txt
 Rode verificações:
 
 ```bash
-ruff check src tests app.py auth.py
+ruff check src tests app.py auth.py mcp_server.py
 pytest
-python -m py_compile app.py auth.py data_fetcher.py drive_helper.py
+python -m py_compile app.py auth.py data_fetcher.py drive_helper.py mcp_server.py
 ```
 
 Scripts utilitários/debug ficam em `tools/`.

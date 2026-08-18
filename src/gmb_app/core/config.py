@@ -5,6 +5,12 @@ DEFAULT_AUTH_URI = "https://accounts.google.com/o/oauth2/auth"
 DEFAULT_TOKEN_URI = "https://oauth2.googleapis.com/token"
 DEFAULT_LOG_LEVEL = "INFO"
 
+GOOGLE_OAUTH_SCOPES = [
+    "https://www.googleapis.com/auth/business.manage",
+    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/drive.metadata.readonly",
+]
+
 
 def get_env(name, default=""):
     return os.getenv(name, default).strip()

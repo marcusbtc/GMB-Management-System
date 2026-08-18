@@ -91,6 +91,88 @@ streamlit run app.py
 
 Open: `http://localhost:8501`
 
+## MCP server (Google Business Profile)
+
+A thin MCP server exposes the same Google clients used by the Streamlit app (`data_fetcher.py`, `drive_helper.py`) as JSON tools. It does not import Streamlit, return DataFrames, or generate PDFs/Plotly charts.
+
+Auth is user OAuth only (no service account). The Streamlit `auth.py` session/secrets flow is not used.
+
+### Install and run
+
+```bash
+pip install -r requirements.txt
+```
+
+stdio (default — Cursor, Claude Desktop, Claude Code):
+
+```bash
+python mcp_server.py
+# or: python -m src.gmb_mcp
+```
+
+Streamable HTTP:
+
+```bash
+python mcp_server.py --http --host 127.0.0.1 --port 8765
+```
+
+Endpoint: `http://127.0.0.1:8765/mcp`
+
+### Connect from Cursor
+
+Add to MCP settings (project or user). Do not put tokens in git.
+
+```json
+{
+  "mcpServers": {
+    "google-business-profile": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "cwd": "/absolute/path/to/this/repo",
+      "env": {
+        "GOOGLE_ACCESS_TOKEN": "<your-oauth-access-token>"
+      }
+    }
+  }
+}
+```
+
+For HTTP instead of stdio:
+
+```json
+{
+  "mcpServers": {
+    "google-business-profile": {
+      "url": "http://127.0.0.1:8765/mcp"
+    }
+  }
+}
+```
+
+### Auth options (never commit these)
+
+1. Pass `access_token` on any tool call.
+2. Set `GOOGLE_ACCESS_TOKEN` (optional `GOOGLE_REFRESH_TOKEN` + `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` for refresh).
+3. Local helper — opens a browser and writes a gitignored token file (default `.gmb-mcp-token.json`):
+
+```bash
+python mcp_server.py --oauth
+```
+
+Or use MCP tools `start_oauth` then `complete_oauth` with the `code` from the redirect URL. Token files and client secrets must stay out of git (`GMB_MCP_TOKEN_PATH` overrides the file path).
+
+Redirect URI for the helper defaults to `http://localhost:8753/` unless `GOOGLE_REDIRECT_URI` is set. Add that URI in Google Cloud OAuth clients.
+
+### Tools
+
+Read: `list_accounts`, `list_locations`, `get_daily_metrics`, `get_search_keywords`, `list_reviews`, `list_posts`, `list_media`, `list_questions`, `profile_health_check`
+
+Write: `create_local_post`, `upload_image_to_drive`, `reply_to_review`
+
+Auth helpers: `start_oauth`, `complete_oauth`
+
+Location IDs accept `accounts/{accountId}/locations/{locationId}`, `locations/{locationId}`, or a bare id. v4 calls reuse `resolve_location_parent`. Dates are `YYYY-MM-DD`. Drive uploads take base64 image bytes (`file_base64`) and return a public URL.
+
 ## Development
 
 Install dev tools:
@@ -102,9 +184,9 @@ pip install -r requirements-dev.txt
 Run checks:
 
 ```bash
-ruff check src tests app.py auth.py
+ruff check src tests app.py auth.py mcp_server.py
 pytest
-python -m py_compile app.py auth.py data_fetcher.py drive_helper.py
+python -m py_compile app.py auth.py data_fetcher.py drive_helper.py mcp_server.py
 ```
 
 Utility/debug scripts are in `tools/`.

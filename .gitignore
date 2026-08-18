@@ -8,6 +8,8 @@ __pycache__/
 client_secret.json
 .streamlit/secrets.toml
 .claude/
+.gmb-mcp-token.json
+.gmb-mcp/
 
 # macOS
 .DS_Store
